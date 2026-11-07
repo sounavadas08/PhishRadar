@@ -2,20 +2,47 @@
 
 > **Zero-Trust Multi-Vector Threat Radar and URL Security Auditing Platform**
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-phish--radar--ten.vercel.app-00FF66?style=for-the-badge&logo=vercel)](https://phish-radar-ten.vercel.app)
+[![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com)
+[![React](https://img.shields.io/badge/Frontend-React%20%7C%20Vite%20%7C%20Tailwind-61DAFB?style=for-the-badge&logo=react)](https://react.dev)
+[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python)](https://python.org)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+
+🌐 **Live Deployment:** [https://phish-radar-ten.vercel.app](https://phish-radar-ten.vercel.app)
+
+---
+
 PhishRadar is a cybersecurity platform designed to protect users against sophisticated phishing campaigns, credential harvesting, brand impersonation, and malicious websites. Built with an interactive cyber-matrix visual interface, the platform performs multi-vector inspection in parallel and compiles findings into a 0–100 calibrated risk score, an immediate verdict (Safe / Suspicious / Malicious), and plain-language explanations.
 
 ---
 
-## Key Highlights and Architecture
+## 🚀 Live Demo & Access
+
+The application is deployed and publicly accessible:
+- **Web Application:** [https://phish-radar-ten.vercel.app](https://phish-radar-ten.vercel.app)
+- **Repository:** [https://github.com/sounavadas08/PhishRadar](https://github.com/sounavadas08/PhishRadar)
+
+---
+
+## 🛠 Tech Stack
+
+- **Frontend:** React 18, Vite, TypeScript, Tailwind CSS, Framer Motion, Lucide Icons
+- **Backend:** FastAPI, Python 3.11+, Uvicorn (ASGI), HTTPX (Async), Cryptography, SQLite3
+- **Deployment:** Vercel
+
+---
+
+## ⚡ Key Highlights and Architecture
 
 - **Interactive Cyber Matrix HUD:** Reactive cursor proximity lighting, randomized character glitch animations, and dark glassmorphic terminal styling.
 - **Concurrent Python FastAPI Core:** Four isolated analyzer pipelines operating asynchronously with server-side sandboxing, timeouts, and size limits.
 - **Collaborative Intelligence and Community Feedback:** SQLite-backed voting engine allowing users to dispute or confirm emerging threats.
 - **Mobile-First and Fully Accessible:** Responsive across 360px, 768px, 1024px, and 1440px with touch targets at least 44px tall and zero horizontal scrolling.
+- **Zero Client Execution Risk:** Scanned URLs and page contents are never rendered or executed in the user's browser.
 
 ---
 
-## The 4 Modular Inspection Engines
+## 🔍 The 4 Modular Inspection Engines
 
 ### 1. Threat and Heuristic Analysis (`threat.py`)
 - **Punycode / Homoglyph Detection:** Identifies deceptive Cyrillic, Greek, or zero-width character substitutions mimicking legitimate brands.
@@ -31,7 +58,7 @@ PhishRadar is a cybersecurity platform designed to protect users against sophist
 ### 3. Certificate and PKI Validation (`certificate.py`)
 - **Handshake Verification:** Validates TLS chain, active validity period, key strength (at least 2048-bit RSA / P-256 ECC), and signature algorithms.
 - **Certificate Freshness:** Flags newly issued certificates (under 5 days old) heavily correlated with transient attack campaigns.
-- **Certificate Transparency (CT):** Verifies certificate presence in public CT logs.
+- **Certificate Transparency (CT):** Verifies certificate presence in public CT logs (crt.sh).
 - **Compromised CA Watchlist:** Flags revoked or untrusted authorities (e.g. eMudhra, WoSign, StartCom).
 
 ### 4. Collaborative Threat Intelligence (`intel.py`)
@@ -40,7 +67,20 @@ PhishRadar is a cybersecurity platform designed to protect users against sophist
 
 ---
 
-## Quality Assurance (QA) Verification Matrix
+## 📡 REST API Reference
+
+The backend provides a high-throughput, async REST API:
+
+| Method | Endpoint | Description |
+| :---: | :--- | :--- |
+| `POST` | `/scan` | Primary inspection pipeline. Accepts `{"url": "..."}` and returns score, verdict, reasons, and per-module breakdowns. |
+| `POST` | `/report` | Submits community consensus feedback (`{"url": "...", "vote": "safe" \| "malicious"}`). |
+| `GET` | `/health` | Health check endpoint returning backend status. |
+| `GET` | `/docs` | Interactive Swagger UI for live API testing and schema inspection. |
+
+---
+
+## 🧪 Quality Assurance (QA) Verification Matrix
 
 | Test ID | Test Target | Expected Verdict | Score Range | Primary Triggers Verified | Status |
 | :--- | :--- | :---: | :---: | :--- | :---: |
@@ -52,7 +92,7 @@ PhishRadar is a cybersecurity platform designed to protect users against sophist
 
 ---
 
-## Responsive and Performance Checklist
+## 📱 Responsive and Performance Checklist
 
 - [x] **360px (Mobile):** Single-column layout, touch-friendly inputs (at least 44px), zero horizontal overflow.
 - [x] **768px (Tablet):** Two-column module grid, centered input with responsive button layout.
@@ -61,7 +101,19 @@ PhishRadar is a cybersecurity platform designed to protect users against sophist
 
 ---
 
-## Quick Setup and Local Execution
+## ⚙️ Environment Configuration (Optional)
+
+PhishRadar works out of the box with zero external dependencies using local heuristic engines. To enrich inspections with external threat intelligence databases, set the following optional environment variables:
+
+| Variable | Description | Fallback Behavior |
+| :--- | :--- | :--- |
+| `SAFE_BROWSING_API_KEY` | Google Safe Browsing Lookup API v4 key | Clean default applied gracefully if omitted |
+| `VIRUSTOTAL_API_KEY` | VirusTotal v3 API key | Skipped gracefully if omitted |
+| `PHISHTANK_API_KEY` | PhishTank verification key / app key | Skipped gracefully if omitted |
+
+---
+
+## 💻 Quick Setup and Local Execution
 
 ### Prerequisites
 - **Node.js:** v18+ 
@@ -88,4 +140,10 @@ python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
 npm run dev
 ```
 
-Visit **`http://localhost:5173`** to access the live dashboard.
+Visit **`http://localhost:5173`** to access the live dashboard locally.
+
+---
+
+## 📄 License
+
+This project is licensed under the [MIT License](https://opensource.org/licenses/MIT).

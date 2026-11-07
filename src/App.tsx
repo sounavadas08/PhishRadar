@@ -1,9 +1,10 @@
 import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Shield, Radio, History, ArrowDown, Activity } from 'lucide-react';
+import { Shield, Radio, History, ArrowDown, Activity, Info, Zap, AlertOctagon } from 'lucide-react';
 import { CyberGrid } from './components/CyberGrid';
 import { ScanForm } from './components/ScanForm';
 import { ScanResults } from './components/ScanResults';
+import { SecurityGuide } from './components/SecurityGuide';
 import { ScanResult } from './types';
 import { mockResults } from './mockData';
 
@@ -119,11 +120,27 @@ export const App: React.FC = () => {
                 v1.0
               </span>
             </div>
-            <p className="text-[11px] text-gray-400 hidden sm:block">
+            <p className="text-[11px] text-gray-400 hidden sm:block font-roboto-medium">
               Phishing & Malicious Website Detection Engine
             </p>
           </div>
         </div>
+
+        {/* Center / Navigation Links */}
+        <nav className="hidden md:flex items-center gap-6 text-xs font-roboto-medium text-gray-300">
+          <a href="#scanner" className="hover:text-green-400 transition-colors">
+            Radar Scanner
+          </a>
+          <a href="#security-guide" className="hover:text-green-400 transition-colors">
+            Why PhishRadar?
+          </a>
+          <a href="#security-guide" className="hover:text-cyan-400 transition-colors">
+            Pros & Capabilities
+          </a>
+          <a href="#security-guide" className="hover:text-rose-400 transition-colors">
+            Data Breach Risks
+          </a>
+        </nav>
 
         <div className="flex items-center gap-4 text-xs font-mono">
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/50 border border-white/10">
@@ -137,7 +154,7 @@ export const App: React.FC = () => {
       </header>
 
       {/* Main Content Body */}
-      <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 sm:px-6 py-12 md:py-16">
+      <main id="scanner" className="relative z-10 flex-1 flex flex-col items-center justify-start px-4 sm:px-6 py-12 md:py-16">
         
         {/* Central Hero Scanner Card */}
         <div className="w-full max-w-4xl text-center">
@@ -151,7 +168,7 @@ export const App: React.FC = () => {
             className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-green-500/10 border border-green-500/20 mb-6"
           >
             <Radio className="h-4 w-4 text-green-400 animate-pulse" />
-            <span className="text-xs sm:text-sm font-medium text-gray-200 font-mono">
+            <span className="text-xs sm:text-sm font-roboto-medium text-gray-200">
               Zero-Trust URL & Threat Telemetry
             </span>
           </motion.div>
@@ -162,7 +179,7 @@ export const App: React.FC = () => {
             variants={fadeUpVariants}
             initial="hidden"
             animate="visible"
-            className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight mb-4 bg-clip-text text-transparent bg-gradient-to-b from-white via-gray-100 to-gray-500"
+            className="text-4xl sm:text-6xl md:text-7xl font-roboto-bold tracking-tight mb-4 bg-clip-text text-transparent bg-gradient-to-b from-white via-gray-100 to-gray-500"
           >
             Detect Malicious Websites
           </motion.h1>
@@ -173,7 +190,7 @@ export const App: React.FC = () => {
             variants={fadeUpVariants}
             initial="hidden"
             animate="visible"
-            className="max-w-2xl mx-auto text-base sm:text-lg text-gray-400 mb-8 sm:mb-10 font-normal leading-relaxed"
+            className="max-w-2xl mx-auto text-base sm:text-lg text-gray-300 mb-8 sm:mb-10 font-roboto-medium leading-relaxed"
           >
             Multi-vector threat audit: detect homoglyph lookalikes, audit SSL certificate transparency, grade security headers, and cross-reference real-time threat intelligence.
           </motion.p>
@@ -188,9 +205,26 @@ export const App: React.FC = () => {
             <ScanForm onScan={performScan} isLoading={isLoading} />
           </motion.div>
 
+          {/* Guide Quick-jump CTA Pill */}
+          <motion.div
+            custom={4}
+            variants={fadeUpVariants}
+            initial="hidden"
+            animate="visible"
+            className="mt-4 flex items-center justify-center gap-3"
+          >
+            <a
+              href="#security-guide"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs text-gray-400 hover:text-green-400 hover:border-green-500/30 transition-all font-roboto-medium group"
+            >
+              <span>Why use PhishRadar? • Pros & Online Data Consequences</span>
+              <ArrowDown className="w-3.5 h-3.5 text-green-400 group-hover:translate-y-0.5 transition-transform" />
+            </a>
+          </motion.div>
+
           {/* Scan History Pill Tags */}
           {scanHistory.length > 0 && (
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-2 text-xs font-mono text-gray-400">
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-2 text-xs font-mono text-gray-400">
               <span className="flex items-center gap-1 text-gray-500">
                 <History className="w-3.5 h-3.5" /> Recent targets:
               </span>
@@ -214,14 +248,26 @@ export const App: React.FC = () => {
             <ScanResults result={currentResult} onVote={handleVote} />
           )}
         </div>
+
+        {/* Educational Cybersecurity Guide: Why PhishRadar, Pros, Consequences */}
+        <SecurityGuide />
       </main>
 
       {/* Cyber Footer */}
-      <footer className="relative z-20 w-full border-t border-white/10 bg-black/80 backdrop-blur-md px-4 sm:px-8 py-5 text-center text-xs text-gray-500 font-mono">
-        <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
-          <span>Safe • Suspicious • Malicious Defense System</span>
-          <div className="flex items-center gap-4">
-            <span className="text-gray-400">Threat Analysis • Headers • Certificates • Intel</span>
+      <footer className="relative z-20 w-full border-t border-white/10 bg-black/80 backdrop-blur-md px-4 sm:px-8 py-6 text-center text-xs text-gray-400 font-roboto">
+        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <Shield className="w-4 h-4 text-green-400" />
+            <span className="font-roboto-medium text-gray-300">PhishRadar Threat Defense Engine</span>
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-4 text-gray-400 font-roboto-medium">
+            <a href="#scanner" className="hover:text-green-400 transition-colors">Scan Target</a>
+            <span>•</span>
+            <a href="#security-guide" className="hover:text-green-400 transition-colors">Why PhishRadar</a>
+            <span>•</span>
+            <a href="#security-guide" className="hover:text-cyan-400 transition-colors">Advantages</a>
+            <span>•</span>
+            <a href="#security-guide" className="hover:text-rose-400 transition-colors">Data Privacy Risks</a>
           </div>
         </div>
       </footer>
