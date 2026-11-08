@@ -1,17 +1,32 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Shield, Radio, History, ArrowDown, Activity, Info, Zap, AlertOctagon } from 'lucide-react';
 import { CyberGrid } from './components/CyberGrid';
+import { fetchThreatFeed, isUrlInFeed } from './utils/intel';
 import { ScanForm } from './components/ScanForm';
-import { ScanResults } from './components/ScanResults';
+import { Simulation } from './components/Simulation';
 import { SecurityGuide } from './components/SecurityGuide';
 import { ScanResult } from './types';
 import { mockResults } from './mockData';
 
 export const App: React.FC = () => {
+  // Live threat intel feed state
+  const [threatFeed, setThreatFeed] = React.useState<Set<string>>(new Set());
+
+  // Fetch feed on mount and refresh every 5 minutes
+  React.useEffect(() => {
+    const loadFeed = async () => {
+      const feed = await import('../utils/intel').then(m => m.fetchThreatFeed());
+      setThreatFeed(feed);
+    };
+    loadFeed();
+    const interval = setInterval(loadFeed, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   const [currentResult, setCurrentResult] = useState<ScanResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [scanHistory, setScanHistory] = useState<ScanResult[]>([]);
+  const [showSimulation, setShowSimulation] = useState(false);
   const resultsRef = useRef<HTMLDivElement | null>(null);
 
   const performScan = async (targetUrl: string) => {
@@ -51,6 +66,9 @@ export const App: React.FC = () => {
       selectedMock = { ...mockResults.safe, url: targetUrl, scanned_at: new Date().toISOString() };
     }
 
+    const liveMatch = isUrlInFeed(selectedMock.url, threatFeed);
+    // Extend intel with live feed match
+    (selectedMock as any).intel = { ...(selectedMock as any).intel, live_feed_match: liveMatch };
     setCurrentResult(selectedMock);
     setScanHistory((prev) => [selectedMock, ...prev.filter((p) => p.url !== selectedMock.url)].slice(0, 5));
     setIsLoading(false);
@@ -220,6 +238,12 @@ export const App: React.FC = () => {
               <span>Why use PhishRadar? • Pros & Online Data Consequences</span>
               <ArrowDown className="w-3.5 h-3.5 text-green-400 group-hover:translate-y-0.5 transition-transform" />
             </a>
+            <button
+              onClick={() => setShowSimulation(true)}
+              className="px-3 py-1.5 rounded-full bg-green-600 text-white hover:bg-green-500 transition-all font-roboto-medium ml-2"
+            >
+              Simulation Playground
+            </button>
           </motion.div>
 
           {/* Scan History Pill Tags */}

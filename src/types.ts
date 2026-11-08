@@ -38,6 +38,7 @@ export interface CertificateValidation {
 }
 
 export interface CollaborativeIntel {
+  live_feed_match?: boolean;
   community_votes: {
     safe: number;
     malicious: number;
