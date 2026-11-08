@@ -26,8 +26,12 @@ export const App: React.FC = () => {
 
   const [currentResult, setCurrentResult] = useState<ScanResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [showSimulation, setShowSimulation] = useState(false);
-  const resultsRef = useRef<HTMLDivElement | null>(null);
+  {showSimulation && (
+    <Simulation
+      onScan={performScan}
+      onClose={() => setShowSimulation(false)}
+    />
+  )}  const resultsRef = useRef<HTMLDivElement | null>(null);
 
   const performScan = async (targetUrl: string) => {
     setIsLoading(true);

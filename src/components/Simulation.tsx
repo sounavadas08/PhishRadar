@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Check, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Check } from 'lucide-react';
 import { ScanResult } from '../types';
 
 interface SimulationProps {
@@ -13,8 +13,13 @@ export const Simulation: React.FC<SimulationProps> = ({ onScan, onClose }) => {
   const [error, setError] = useState('');
   const [url, setUrl] = useState('');
 
+  useEffect(() => {
+    if (!loading) {
+      setInput('');
+    }
+  }, [loading]);
+
   const extractUrl = (text: string): string | null => {
-    // Simple regex to find first http(s) URL
     const match = text.match(/https?:\/\/[^\s\"'<>]+/i);
     return match ? match[0] : null;
   };
@@ -30,6 +35,7 @@ export const Simulation: React.FC<SimulationProps> = ({ onScan, onClose }) => {
     setLoading(true);
     try {
       await onScan(found);
+      onClose(); // close after successful scan
     } catch (e) {
       setError('Scan failed.');
     }
