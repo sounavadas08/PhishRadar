@@ -5,7 +5,7 @@ export const mockResults: Record<string, ScanResult> = {
     url: 'https://github.com',
     final_url: 'https://github.com',
     scanned_at: new Date().toISOString(),
-    verdict: 'Safe',
+    verdict: 'Low Risk',
     score: 8,
     reasons: [
       'Standard well-reputed domain with no punycode or homoglyphs.',

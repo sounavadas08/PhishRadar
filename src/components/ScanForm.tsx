@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, ShieldAlert, ArrowRight, X, Loader2, Sparkles } from 'lucide-react';
+import { Search, ShieldAlert, ArrowRight, X, Loader2, Sparkles, Check } from 'lucide-react';
 
 interface ScanFormProps {
   onScan: (url: string) => void;
@@ -7,8 +7,34 @@ interface ScanFormProps {
 }
 
 export const ScanForm: React.FC<ScanFormProps> = ({ onScan, isLoading }) => {
+  const steps = [
+    'Parsing URL',
+    'Checking domain and lookalikes',
+    'Inspecting TLS',
+    'Auditing headers',
+    'Querying community intel',
+  ];
+
   const [url, setUrl] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [currentStep, setCurrentStep] = useState(0);
+
+  // Advance stepper while loading
+  React.useEffect(() => {
+    if (isLoading) {
+      setCurrentStep(0);
+      const interval = setInterval(() => {
+        setCurrentStep((prev) => {
+          if (prev >= steps.length - 1) {
+            clearInterval(interval);
+            return prev;
+          }
+          return prev + 1;
+        });
+      }, 400); // approx 0.4s per step → ~2s total
+      return () => clearInterval(interval);
+    }
+  }, [isLoading]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -17,8 +43,19 @@ export const ScanForm: React.FC<ScanFormProps> = ({ onScan, isLoading }) => {
       setError('Please paste or type a URL to inspect.');
       return;
     }
+    // Ensure protocol present, default to https
+    const hasProtocol = /^https?:\/\//i.test(trimmed);
+    const finalUrl = hasProtocol ? trimmed : `https://${trimmed}`;
+    // Validate URL format
+    try {
+      new URL(finalUrl);
+    } catch {
+      setError('The URL appears malformed. Please check and try again.');
+      return;
+    }
     setError(null);
-    onScan(trimmed);
+    setUrl(finalUrl);
+    onScan(finalUrl);
   };
 
   const handleQuickPick = (sampleUrl: string) => {
@@ -31,7 +68,6 @@ export const ScanForm: React.FC<ScanFormProps> = ({ onScan, isLoading }) => {
     <div className="w-full max-w-3xl mx-auto">
       <form onSubmit={handleSubmit} className="relative">
         <div className="relative flex flex-col sm:flex-row items-stretch sm:items-center bg-black/80 backdrop-blur-xl border border-white/15 rounded-2xl p-2 shadow-[0_0_35px_rgba(0,255,102,0.12)] transition-all duration-300 focus-within:border-green-500/80 focus-within:shadow-[0_0_40px_rgba(0,255,102,0.25)]">
-          
           <div className="flex items-center flex-1 px-3 py-2 sm:py-0">
             <Search className="w-5 h-5 text-green-400 shrink-0 mr-3" />
             <input
@@ -66,7 +102,7 @@ export const ScanForm: React.FC<ScanFormProps> = ({ onScan, isLoading }) => {
             {isLoading ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin text-black" />
-                <span>Auditing Target...</span>
+                <span className="text-sm">Scanning...</span>
               </>
             ) : (
               <>
@@ -76,6 +112,31 @@ export const ScanForm: React.FC<ScanFormProps> = ({ onScan, isLoading }) => {
             )}
           </button>
         </div>
+
+        {/* Stepper progress (shown below input while scanning) */}
+        {isLoading && (
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-2 px-2">
+            {steps.map((step, idx) => (
+              <div
+                key={idx}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono transition-all duration-300 ${
+                  idx < currentStep
+                    ? 'bg-green-500/20 text-green-300 border border-green-500/40'
+                    : idx === currentStep
+                    ? 'bg-green-500 text-black border border-green-400 shadow-[0_0_12px_rgba(0,255,102,0.4)]'
+                    : 'bg-white/5 text-gray-500 border border-white/10'
+                }`}
+              >
+                {idx < currentStep ? (
+                  <Check className="w-3 h-3" />
+                ) : idx === currentStep ? (
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                ) : null}
+                <span>{step}</span>
+              </div>
+            ))}
+          </div>
+        )}
 
         {error && (
           <div className="mt-3 flex items-center gap-2 text-red-400 text-sm px-2">
@@ -88,8 +149,7 @@ export const ScanForm: React.FC<ScanFormProps> = ({ onScan, isLoading }) => {
       {/* Preset Quick Tests */}
       <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-xs text-gray-400">
         <span className="flex items-center gap-1 text-gray-500">
-          <Sparkles className="w-3.5 h-3.5 text-green-400" />
-          Quick presets:
+          <Sparkles className="w-3.5 h-3.5 text-green-400" /> Quick presets:
         </span>
         <button
           type="button"
@@ -116,4 +176,3 @@ export const ScanForm: React.FC<ScanFormProps> = ({ onScan, isLoading }) => {
     </div>
   );
 };
-

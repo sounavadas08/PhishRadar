@@ -35,18 +35,20 @@ export const SecurityGuide: React.FC = () => {
           <Sparkles className="w-3.5 h-3.5 animate-pulse" />
           <span>Cyber Intelligence & Threat Advisory</span>
         </div>
-        
-        <h2 className="text-3xl sm:text-4xl md:text-5xl font-roboto-bold text-white tracking-tight mb-4">
-          Why PhishRadar & Online Data Hygiene Matter
-        </h2>
-        
-        <p className="max-w-3xl mx-auto text-gray-300 text-base sm:text-lg font-roboto-medium leading-relaxed">
-          In an era where malicious actors deploy AI-generated spoofing, ephemeral homoglyph domains, and stealth credential harvesting, proactive URL telemetry is your frontline defense.
-        </p>
-        
-        <p className="mt-2 text-sm text-green-400/90 font-roboto-medium-italic">
-          * &ldquo;An unverified click takes milliseconds; recovering from identity theft or corporate compromise takes years.&rdquo;
-        </p>
+
+        {/* Collapsible intro accordion */}
+        <details className="mt-4 text-left">
+          <summary className="text-3xl sm:text-4xl md:text-5xl font-roboto-bold text-white tracking-tight mb-4 cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-green-400 list-none text-center">
+            Why PhishRadar &amp; Online Data Hygiene Matter
+            <span className="ml-2 text-green-400 text-lg align-middle">&#9656;</span>
+          </summary>
+          <p className="max-w-3xl mx-auto text-gray-300 text-base sm:text-lg font-roboto-medium leading-relaxed mt-4 text-center">
+            In an era where malicious actors deploy AI-generated spoofing, ephemeral homoglyph domains, and stealth credential harvesting, proactive URL telemetry is your frontline defense.
+          </p>
+          <p className="mt-2 text-sm text-green-400/90 font-roboto-medium-italic text-center">
+            * &ldquo;An unverified click takes milliseconds; recovering from identity theft or corporate compromise takes years.&rdquo;
+          </p>
+        </details>
 
         {/* Tab Selector */}
         <div className="flex flex-wrap items-center justify-center gap-2 mt-8">

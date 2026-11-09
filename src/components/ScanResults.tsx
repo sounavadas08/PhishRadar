@@ -5,6 +5,8 @@ import {
   ExternalLink, ChevronDown, ChevronUp, Copy, Check
 } from 'lucide-react';
 import { ScanResult } from '../types';
+// Detect reduced motion preference
+const prefersReduced = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 interface ScanResultsProps {
   result: ScanResult;
@@ -18,7 +20,17 @@ export const ScanResults: React.FC<ScanResultsProps> = ({ result, onVote }) => {
 
   const getVerdictTheme = (verdict: string) => {
     switch (verdict.toLowerCase()) {
+      case 'low risk':
+        return {
+          bg: 'bg-emerald-950/40 border-emerald-500/40',
+          text: 'text-emerald-400',
+          glow: 'shadow-[0_0_35px_rgba(16,185,129,0.2)]',
+          badge: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30',
+          barColor: 'from-emerald-500 to-green-400',
+          icon: ShieldCheck
+        };
       case 'safe':
+        // fallback for any legacy data
         return {
           bg: 'bg-emerald-950/40 border-emerald-500/40',
           text: 'text-emerald-400',
@@ -64,9 +76,24 @@ export const ScanResults: React.FC<ScanResultsProps> = ({ result, onVote }) => {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto mt-10 space-y-6">
+    <div className="w-full max-w-5xl mx-auto mt-10 space-y-6">
       {/* Primary Verdict Card */}
       <div className={`p-6 sm:p-8 rounded-2xl border backdrop-blur-xl ${theme.bg} ${theme.glow} transition-all duration-300`}>
+          {/* Copy report button */}
+          <button
+            onClick={() => {
+              const defanged = result.url.replace(/^https?:\/\//i, (match) => match.replace('http', 'hxxp')).replace(/\./g, '[.]');
+              const text = `URL: ${defanged}\nVerdict: ${result.verdict}\nScore: ${result.score}/100\nReasons:\n${result.reasons.join('\n')}`;
+              navigator.clipboard.writeText(text);
+              // Show temporary copied state via local state (could reuse copied state) - reuse existing copied state for URL copy
+              setCopied(true);
+              setTimeout(() => setCopied(false), 2000);
+            }
+            }
+            className="ml-2 px-2 py-1 rounded bg-green-600/20 text-green-300 hover:bg-green-600/30 transition-colors text-xs"
+          >
+            {copied ? 'Copied' : 'Copy Report'}
+          </button>
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           
           <div className="flex items-start gap-4">

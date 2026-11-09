@@ -1,4 +1,4 @@
-export type Verdict = 'Safe' | 'Suspicious' | 'Malicious';
+export type Verdict = 'Safe' | 'Low Risk' | 'Suspicious' | 'Malicious';
 
 export interface ThreatAnalysis {
   lookalike_detected: boolean;

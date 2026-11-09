@@ -3,10 +3,12 @@ import { motion } from 'framer-motion';
 import { Shield, Radio, History, ArrowDown, Activity, Info, Zap, AlertOctagon } from 'lucide-react';
 import { CyberGrid } from './components/CyberGrid';
 import { fetchThreatFeed, isUrlInFeed } from './utils/intel';
+import { ScanResult } from './types';
 import { ScanForm } from './components/ScanForm';
 import { Simulation } from './components/Simulation';
 import { SecurityGuide } from './components/SecurityGuide';
-import { ScanResult } from './types';
+import { ScanResults } from './components/ScanResults';
+
 import { mockResults } from './mockData';
 
 export const App: React.FC = () => {
@@ -16,7 +18,7 @@ export const App: React.FC = () => {
   // Fetch feed on mount and refresh every 5 minutes
   React.useEffect(() => {
     const loadFeed = async () => {
-      const feed = await import('../utils/intel').then(m => m.fetchThreatFeed());
+      const feed = await import('./utils/intel').then(m => m.fetchThreatFeed());
       setThreatFeed(feed);
     };
     loadFeed();
@@ -26,12 +28,15 @@ export const App: React.FC = () => {
 
   const [currentResult, setCurrentResult] = useState<ScanResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  {showSimulation && (
-    <Simulation
-      onScan={performScan}
-      onClose={() => setShowSimulation(false)}
-    />
-  )}  const resultsRef = useRef<HTMLDivElement | null>(null);
+  const [showSimulation, setShowSimulation] = useState(false);
+  const [scanHistory, setScanHistory] = useState<ScanResult[]>([]);
+  const resultsRef = useRef<HTMLDivElement | null>(null);
+
+  // Helper to scroll to results respecting prefers-reduced-motion
+  const scrollToResult = () => {
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    resultsRef.current?.scrollIntoView({ behavior: prefersReduced ? 'auto' : 'smooth', block: 'start' });
+  };
 
   const performScan = async (targetUrl: string) => {
     setIsLoading(true);
@@ -48,9 +53,8 @@ export const App: React.FC = () => {
         const data: ScanResult = await response.json();
         setCurrentResult(data);
         setScanHistory((prev) => [data, ...prev.filter((p) => p.url !== data.url)].slice(0, 5));
-        setTimeout(() => {
-          resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 150);
+        scrollToResult();
+        setIsLoading(false);
         return;
       }
     } catch {
@@ -58,28 +62,36 @@ export const App: React.FC = () => {
     }
 
     // 2. Client-side heuristic analyzer fallback (Step 1 requirement)
-    await new Promise((resolve) => setTimeout(resolve, 1100)); // Simulate radar inspection
-    const lower = targetUrl.toLowerCase();
-    let selectedMock: ScanResult;
-
-    if (lower.includes('192.168') || lower.includes('chase-online') || lower.includes('login.php')) {
-      selectedMock = { ...mockResults.malicious, url: targetUrl, scanned_at: new Date().toISOString() };
-    } else if (lower.includes('paypal') || lower.includes('.top') || lower.includes('update') || lower.includes('verify')) {
-      selectedMock = { ...mockResults.suspicious, url: targetUrl, scanned_at: new Date().toISOString() };
-    } else {
-      selectedMock = { ...mockResults.safe, url: targetUrl, scanned_at: new Date().toISOString() };
-    }
-
-    const liveMatch = isUrlInFeed(selectedMock.url, threatFeed);
-    // Extend intel with live feed match
-    (selectedMock as any).intel = { ...(selectedMock as any).intel, live_feed_match: liveMatch };
-    setCurrentResult(selectedMock);
-    setScanHistory((prev) => [selectedMock, ...prev.filter((p) => p.url !== selectedMock.url)].slice(0, 5));
+    // Dynamically import the analyser to avoid bundling it when the backend works
+    const { analyzeUrl } = await import('./lib/analyzeUrl');
+    const analysis = analyzeUrl(targetUrl);
+    const liveMatch = isUrlInFeed(targetUrl, threatFeed);
+    const result: ScanResult = {
+      url: targetUrl,
+      scanned_at: new Date().toISOString(),
+      verdict: analysis.verdict as any,
+      score: analysis.score,
+      reasons: analysis.reasons,
+      // Minimal placeholders for UI expectations
+      threat: {
+        lookalike_detected: !!analysis.threat.lookalike,
+        punycode_host: analysis.threat.punycode ? targetUrl : '',
+        ip_host: analysis.threat.ip_host,
+        suspicious_tld: analysis.threat.risky_tld,
+        tld: targetUrl.split('.').pop() || '',
+        subdomain_depth: analysis.threat.subdomain_depth,
+        redirect_count: 0,
+        suspicious_keywords: analysis.threat.suspicious_keywords,
+        findings: analysis.reasons,
+      },
+      security_headers: { grade: 'Simulated' },
+      certificate: { valid: false, simulated: true } as any,
+      intel: { live_feed_match: liveMatch },
+    } as any;
+    setCurrentResult(result);
+    setScanHistory((prev) => [result, ...prev.filter((p) => p.url !== result.url)].slice(0, 5));
     setIsLoading(false);
-
-    setTimeout(() => {
-      resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 150);
+    scrollToResult();
   };
 
   const handleVote = async (vote: 'safe' | 'malicious') => {
@@ -126,6 +138,14 @@ export const App: React.FC = () => {
     <div className="relative min-h-screen w-full bg-black text-gray-100 flex flex-col justify-between selection:bg-green-500/30 selection:text-green-300">
       {/* Matrix Canvas Backdrop */}
       <CyberGrid />
+
+      {/* Simulation Modal */}
+      {showSimulation && (
+        <Simulation
+          onScan={performScan}
+          onClose={() => setShowSimulation(false)}
+        />
+      )}
 
       {/* Top Cyber Navigation Bar */}
       <header className="relative z-20 w-full border-b border-white/10 bg-black/70 backdrop-blur-md px-4 sm:px-8 py-3.5 flex items-center justify-between">
@@ -256,6 +276,12 @@ export const App: React.FC = () => {
               <span className="flex items-center gap-1 text-gray-500">
                 <History className="w-3.5 h-3.5" /> Recent targets:
               </span>
+              <button
+                onClick={() => setScanHistory([])}
+                className="ml-2 px-2 py-1 rounded bg-red-600/30 text-red-300 hover:bg-red-600/50 transition-colors text-xs"
+              >
+                Clear
+              </button>
               {scanHistory.map((item, idx) => (
                 <button
                   key={idx}
@@ -263,7 +289,14 @@ export const App: React.FC = () => {
                   className="px-2 py-1 rounded bg-black/60 border border-white/10 hover:border-green-500/30 text-gray-300 hover:text-white transition-colors"
                 >
                   <span className={`inline-block w-1.5 h-1.5 rounded-full mr-1.5 ${item.verdict === 'Safe' ? 'bg-emerald-400' : item.verdict === 'Suspicious' ? 'bg-amber-400' : 'bg-rose-400'}`} />
-                  {item.url.replace(/^https?:\/\//, '').slice(0, 24)}...
+                  {(() => {
+                    try {
+                      const host = new URL(item.url).hostname;
+                      return host.length > 20 ? host.slice(0, 20) + '...' : host;
+                    } catch {
+                      return item.url;
+                    }
+                  })()}
                 </button>
               ))}
             </div>
@@ -304,4 +337,3 @@ export const App: React.FC = () => {
 };
 
 export default App;
-
